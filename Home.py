@@ -27,7 +27,7 @@ def get_weather(latitude, longitude):
         "longitude": longitude,
         "current_weather": "true",
         "hourly": "temperature_2m",
-        "forecast_days": 10
+        "forecast_days": 9
     }
     response = requests.get(base_url, params=params)
     if response.status_code == 200:
