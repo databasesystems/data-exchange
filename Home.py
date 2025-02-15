@@ -5,7 +5,18 @@ import plotly.express as px
 from geopy.geocoders import Nominatim
 from datetime import timedelta
 
-st.set_page_config(page_title="Weather Comparison", page_icon="🌤️", layout="wide")
+
+st.set_page_config(
+    page_title="Weather Comparison",
+    page_icon="🌤️",
+    layout="wide",
+    menu_items={
+        'Get Help': 'https://www.example.com/help',
+        'Report a bug': "https://www.example.com/bug",
+        'About': "# This is a weather comparison app. Version 1.0"
+    }
+)
+
 
 # Functions
 @st.cache_data(ttl=timedelta(hours=1))
@@ -28,11 +39,6 @@ def get_weather(latitude, longitude):
 def geocode(location):
     geolocator = Nominatim(user_agent="weather_app")
     return geolocator.geocode(location)
-
-# Sidebar
-st.sidebar.title("Navigation")
-st.sidebar.page_link("de_streamlit_app.py", label="Home")
-st.sidebar.page_link("pages/About.py", label="About")
 
 # Main content
 st.title("Weather Comparison for Selected Locations")
