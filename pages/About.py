@@ -1,11 +1,39 @@
 import streamlit as st
 
-st.set_page_config(page_title="About", page_icon="ℹ️", layout="wide")
+st.set_page_config(
+    page_title="About Weather Comparison App",
+    page_icon="ℹ️",
+    layout="wide",
+)
 
+st.title("About the Weather Comparison App")
 
+st.markdown("""
+This Weather Comparison App is a demonstration project that showcases the capabilities of Streamlit and the Open-Meteo API for weather forecasting.
 
+## Key Features
+- Compare weather forecasts for multiple locations
+- View temperature, humidity, and cloud cover predictions
+- 10-day forecast visualization
 
-st.title("About This App")
-st.write("This is a weather comparison app that shows current weather and forecasts for Cesme, Xanthi, and London.")
-st.write("It uses data from the Open-Meteo API and geocoding from Nominatim.")
-st.write("Created with Streamlit.")
+## Technology Stack
+- **Frontend & Backend**: [Streamlit](https://streamlit.io/)
+- **Weather Data**: [Open-Meteo API](https://open-meteo.com/)
+
+## Hosting
+This app is hosted on [Streamlit Cloud](https://streamlit.io/cloud), demonstrating the ease of deploying data apps with Streamlit.
+
+## Developer Information
+This app was developed by [Database Systems](https://databasesystems.info/), a platform dedicated to exploring and sharing knowledge about database systems and related technologies.
+
+## Disclaimer
+This is a demo application and should not be used for critical decision-making. Weather predictions are based on the Open-Meteo API and may not always be 100% accurate.
+
+## Links
+- [Streamlit Documentation](https://docs.streamlit.io/)
+- [Open-Meteo API Documentation](https://open-meteo.com/en/docs)
+- [Developer's Website](https://databasesystems.info/)
+
+""")
+
+st.info("© 2025 Database Systems. All rights reserved.")
