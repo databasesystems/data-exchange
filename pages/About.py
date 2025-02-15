@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.set_page_config(page_title="About", page_icon="ℹ️")
+st.set_page_config(page_title="About", page_icon="ℹ️", layout="wide")
 
 st.title("About This App")
 st.write("This is a weather comparison app that shows current weather and forecasts for Cesme, Xanthi, and London.")
