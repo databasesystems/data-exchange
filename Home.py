@@ -27,7 +27,7 @@ def get_weather(latitude, longitude):
         "longitude": longitude,
         "current_weather": "true",
         "hourly": "temperature_2m",
-        "forecast_days": 9
+        "forecast_days": 10
     }
     response = requests.get(base_url, params=params)
     if response.status_code == 200:
@@ -43,7 +43,7 @@ def geocode(location):
 # Main content
 st.title("Weather Comparison for Selected Locations")
 
-locations = ["Cesme Turkey", "Xanthi Greece", "London UK"]
+locations = ["Cesme Turkey", "Xanthi Greece", "London UK", "Cairo Egypt"]
 
 # Current Weather Section
 st.header("Current Weather")
