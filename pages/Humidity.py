@@ -76,20 +76,6 @@ daily_data = df.groupby('Date').agg({
 
 daily_data.columns = ['Date', 'Temp_Mean', 'Temp_Min', 'Temp_Max', 'Humidity', 'Wind_Speed', 'Cloud_Cover']
 
-# Display daily forecast
-st.header("📅 Daily Forecast")
-for _, row in daily_data.iterrows():
-    date = row['Date'].strftime("%A, %B %d")
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.metric(f"{date}", f"{row['Temp_Mean']:.1f}°C", f"{row['Temp_Min']:.1f}°C to {row['Temp_Max']:.1f}°C")
-    with col2:
-        st.metric("Humidity", f"{row['Humidity']:.1f}%")
-    with col3:
-        st.metric("Wind Speed", f"{row['Wind_Speed']:.1f} km/h")
-    with col4:
-        st.metric("Cloud Cover", f"{row['Cloud_Cover']:.1f}%")
-    st.divider()
 
 # Plotting
 st.header("📊 Weather Parameters Over Time")
@@ -112,6 +98,22 @@ for metric, emoji in metrics.items():
         fig.add_vline(x=day, line_width=1, line_dash="dash", line_color="lightgray")
     
     st.plotly_chart(fig, use_container_width=True)
+
+
+# Display daily forecast
+st.header("📅 Daily Forecast")
+for _, row in daily_data.iterrows():
+    date = row['Date'].strftime("%A, %B %d")
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric(f"{date}", f"{row['Temp_Mean']:.1f}°C", f"{row['Temp_Min']:.1f}°C to {row['Temp_Max']:.1f}°C")
+    with col2:
+        st.metric("Humidity", f"{row['Humidity']:.1f}%")
+    with col3:
+        st.metric("Wind Speed", f"{row['Wind_Speed']:.1f} km/h")
+    with col4:
+        st.metric("Cloud Cover", f"{row['Cloud_Cover']:.1f}%")
+    st.divider()
 
 # Additional Information
 st.info(f"Data is updated hourly. Last update: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}")
