@@ -1,9 +1,10 @@
 import streamlit as st
 
 st.set_page_config(
-    page_title="About Weather Comparison App",
-    page_icon="ℹ️",
+    page_title="10-Day Weather Forecast",
+    page_icon="🌤️",
     layout="wide",
+    initial_sidebar_state="expanded"
 )
 
 st.title("About the Weather Comparison App")

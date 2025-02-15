@@ -10,11 +10,7 @@ st.set_page_config(
     page_title="Weather Comparison",
     page_icon="🌤️",
     layout="wide",
-    menu_items={
-        'Get Help': 'https://www.example.com/help',
-        'Report a bug': "https://www.example.com/bug",
-        'About': "# This is a weather comparison app. Version 1.0"
-    }
+    initial_sidebar_state="expanded"
 )
 
 # Functions

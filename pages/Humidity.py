@@ -4,12 +4,15 @@ import pandas as pd
 import plotly.express as px
 from geopy.geocoders import Nominatim
 from datetime import timedelta
+import importlib
 
 st.set_page_config(
     page_title="10-Day Weather Forecast",
     page_icon="💧",
     layout="wide",
+    initial_sidebar_state="expanded"
 )
+
 
 # Functions
 @st.cache_data(ttl=timedelta(hours=1))
