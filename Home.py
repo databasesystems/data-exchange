@@ -88,9 +88,25 @@ color_map = {
     "Xanthi Greece": "green",
     "Cesme Turkey": "red"}
 
+# Define line styles (make London thicker)
+line_styles = {
+    "London UK": {"width": 3},  # Thicker line for London
+    "Xanthi Greece": {"width": 1},
+    "Cesme Turkey": {"width": 1},
+    "Cairo Egypt": {"width": 1}
+}
+
+
 for metric in ['Temperature (°C)', 'Humidity (%)', 'Cloud Cover (%)']:
     fig = px.line(combined_df, x='Time', y=metric, color='Location',
                   title=f'{metric} Forecast Comparison', color_discrete_map=color_map)
+    
+# Customize line styles
+    for i, location in enumerate(fig.data):
+        location_name = location.name
+        if location_name in line_styles:
+            fig.data[i].line.update(line_styles[location_name])
+
     fig.update_layout(height=500, legend_title_text='Location')
     fig.update_xaxes(
         title_text='Date',
