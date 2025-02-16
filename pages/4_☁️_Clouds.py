@@ -4,6 +4,7 @@ import pandas as pd
 import plotly.express as px
 from geopy.geocoders import Nominatim
 from datetime import datetime, timedelta
+import pytz
 
 st.set_page_config(page_title="Cloud Cover Forecast", page_icon="☁️", layout="wide")
 
@@ -44,10 +45,13 @@ if location:
                 'Temperature (°C)': weather_data['hourly']['temperature_2m']
             })
 
+            # Get the timezone from the API response
+            timezone = pytz.timezone(weather_data['timezone'])
+            
             # Filter data for the next 3 days starting from now
-            now = pd.Timestamp.now(tz=df['Time'].dt.tz)
+            now = datetime.now(timezone).replace(minute=0, second=0, microsecond=0)
             df = df[df['Time'] >= now]
-            df = df[df['Time'] < now + pd.Timedelta(days=3)]
+            df = df[df['Time'] < now + timedelta(days=3)]
 
             # Add columns for date and hour
             df['Date'] = df['Time'].dt.date
