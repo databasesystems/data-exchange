@@ -58,31 +58,40 @@ if location:
             df = df[(df['Time'] >= now) & (df['Time'] < now + pd.Timedelta(days=10))]
 
             # Add columns for date and hour
-            df['Date'] = df['Time'].dt.date
+            df['SortableDate'] = df['Time'].dt.date
+            df['Date'] = df['Time'].dt.strftime('%a %d %b')
             df['Hour'] = df['Time'].dt.hour
 
             # st.write("DataFrame head:")
             # st.write(df.head())
             # st.write("DataFrame shape:", df.shape)
 
-            pivoted_data = df.pivot(index='Date', columns='Hour', values='Cloud Cover (%)')
+            # Sort the dataframe by the sortable date
+            df = df.sort_values('SortableDate')
+
+            pivoted_data = df.pivot(index='SortableDate', columns='Hour', values='Cloud Cover (%)')
             # st.write("Pivoted data head:")
             # st.write(pivoted_data.head())
             # st.write("Pivoted data shape:", pivoted_data.shape)
 
             # Create heatmap with reversed color scale
+            date_order = df['SortableDate'].sort_values().unique()
             fig_heatmap = px.imshow(pivoted_data,
                                     labels=dict(x="Hour of Day", y="Date", color="Cloud Cover (%)"),
                                     color_continuous_scale=["#007FFF", "#FFFFFF"],  # Blue to White
-                                    title="Cloud Cover Heatmap")
+                                    title="Cloud Cover Heatmap",y=date_order)
 
             # Add sunrise and sunset vertical lines
+            sun_df['SortableDate'] = sun_df['Date'].dt.date
+            sun_df['Date'] = sun_df['Date'].dt.strftime('%a %d %b')
+
             for _, row in sun_df.iterrows():
-                sunrise_hour = row['Sunrise'].hour + row['Sunrise'].minute / 60
-                sunset_hour = row['Sunset'].hour + row['Sunset'].minute / 60
-                
-                fig_heatmap.add_vline(x=sunrise_hour, line_width=2, line_dash="dash", line_color="orange")
-                fig_heatmap.add_vline(x=sunset_hour, line_width=2, line_dash="dash", line_color="red")
+                if row['SortableDate'] in pivoted_data.index:  # Only add lines for dates in our heatmap
+                    sunrise_hour = row['Sunrise'].hour + row['Sunrise'].minute / 60
+                    sunset_hour = row['Sunset'].hour + row['Sunset'].minute / 60
+                    
+                    fig_heatmap.add_vline(x=sunrise_hour, line_width=2, line_dash="dash", line_color="orange")
+                    fig_heatmap.add_vline(x=sunset_hour, line_width=2, line_dash="dash", line_color="red")
 
             fig_heatmap.update_layout(
                 height=400,
@@ -102,6 +111,12 @@ if location:
             )
             st.plotly_chart(fig_heatmap, use_container_width=True)
 
+
+            # Ensure df is sorted by Time
+            df = df.sort_values('Time')
+
+            # Create a formatted date column for daily ticks
+            df['FormattedDate'] = df['Time'].dt.strftime('%a %d %b')
 
             # Create line chart
             fig_line = px.line(df, x='Time', y='Cloud Cover (%)', 
@@ -128,7 +143,21 @@ if location:
                                 marker=dict(color="red", size=10, symbol="triangle-down"),
                                 name="Sunset")
 
-            fig_line.update_layout(height=400)
+            # Update layout
+            fig_line.update_layout(
+                height=400,
+                xaxis=dict(
+                    type='date',
+                    tickmode='array',
+                    tickvals=df.groupby('FormattedDate')['Time'].first(),
+                    ticktext=df['FormattedDate'].unique(),
+                    tickangle=45,
+                ),
+                yaxis=dict(
+                    range=[0, 100]  # Set y-axis range to ensure sunrise/sunset markers are visible
+                )
+            )
+
             st.plotly_chart(fig_line, use_container_width=True)
 
             # Display hours with no cloud cover
