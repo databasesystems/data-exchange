@@ -14,11 +14,13 @@ def get_weather(latitude, longitude):
         "latitude": latitude,
         "longitude": longitude,
         "hourly": ["cloudcover", "temperature_2m"],
+        "daily": ["sunrise", "sunset"],
         "forecast_days": 10,
         "timezone": "auto"
     }
     response = requests.get(base_url, params=params)
     return response.json() if response.status_code == 200 else None
+
 
 @st.cache_data(ttl=timedelta(hours=24))
 def geocode(location):
@@ -37,6 +39,11 @@ if location:
         st.success(f"Showing forecast for {location_info.address}")
 
         weather_data = get_weather(lat, lon)
+        sun_df = pd.DataFrame({
+            'Date': pd.to_datetime(weather_data['daily']['time']),
+            'Sunrise': pd.to_datetime(weather_data['daily']['sunrise']),
+            'Sunset': pd.to_datetime(weather_data['daily']['sunset'])
+        })
         if weather_data:
             df = pd.DataFrame({
                 'Time': pd.to_datetime(weather_data['hourly']['time']),
@@ -68,6 +75,15 @@ if location:
                                     labels=dict(x="Hour of Day", y="Date", color="Cloud Cover (%)"),
                                     color_continuous_scale=["#007FFF", "#FFFFFF"],  # Blue to White
                                     title="Cloud Cover Heatmap")
+
+            # Add sunrise and sunset vertical lines
+            for _, row in sun_df.iterrows():
+                sunrise_hour = row['Sunrise'].hour + row['Sunrise'].minute / 60
+                sunset_hour = row['Sunset'].hour + row['Sunset'].minute / 60
+                
+                fig_heatmap.add_vline(x=sunrise_hour, line_width=2, line_dash="dash", line_color="orange")
+                fig_heatmap.add_vline(x=sunset_hour, line_width=2, line_dash="dash", line_color="red")
+
             fig_heatmap.update_layout(
                 height=400,
                 xaxis=dict(
@@ -89,14 +105,29 @@ if location:
 
             # Create line chart
             fig_line = px.line(df, x='Time', y='Cloud Cover (%)', 
-                               title="Cloud Cover Forecast",
-                               labels={"Cloud Cover (%)": "Cloud Cover (%)", "Time": "Date and Time"})
+                            title="Cloud Cover Forecast",
+                            labels={"Cloud Cover (%)": "Cloud Cover (%)", "Time": "Date and Time"})
             fig_line.update_traces(line=dict(color="royalblue"))
+
+            # Add clear sky markers
             fig_line.add_scatter(x=df[df['Cloud Cover (%)'] == 0]['Time'], 
-                                 y=df[df['Cloud Cover (%)'] == 0]['Cloud Cover (%)'],
-                                 mode='markers',
-                                 marker=dict(color="gold", size=10, symbol="star"),
-                                 name="Clear Sky")
+                                y=df[df['Cloud Cover (%)'] == 0]['Cloud Cover (%)'],
+                                mode='markers',
+                                marker=dict(color="gold", size=10, symbol="star"),
+                                name="Clear Sky")
+
+            # Add sunrise markers
+            fig_line.add_scatter(x=sun_df['Sunrise'], y=[0]*len(sun_df),
+                                mode='markers',
+                                marker=dict(color="orange", size=10, symbol="triangle-up"),
+                                name="Sunrise")
+
+            # Add sunset markers
+            fig_line.add_scatter(x=sun_df['Sunset'], y=[0]*len(sun_df),
+                                mode='markers',
+                                marker=dict(color="red", size=10, symbol="triangle-down"),
+                                name="Sunset")
+
             fig_line.update_layout(height=400)
             st.plotly_chart(fig_line, use_container_width=True)
 
