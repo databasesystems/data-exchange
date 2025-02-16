@@ -5,14 +5,7 @@ import plotly.express as px
 from geopy.geocoders import Nominatim
 from datetime import datetime, timedelta
 
-#  Settings for sidebar navigation
-st.set_page_config(
-    page_title="10-Day Weather Forecast",
-    page_icon="☁️",
-    layout="wide",
-    initial_sidebar_state="collapsed"
-)
-
+st.set_page_config(page_title="Cloud Cover Forecast", page_icon="☁️", layout="wide")
 
 @st.cache_data(ttl=timedelta(hours=1))
 def get_weather(latitude, longitude):
@@ -21,7 +14,8 @@ def get_weather(latitude, longitude):
         "latitude": latitude,
         "longitude": longitude,
         "hourly": ["cloudcover", "temperature_2m"],
-        "forecast_days": 3
+        "forecast_days": 3,
+        "timezone": "auto"
     }
     response = requests.get(base_url, params=params)
     return response.json() if response.status_code == 200 else None
@@ -31,7 +25,7 @@ def geocode(location):
     geolocator = Nominatim(user_agent="cloud_cover_forecast_app")
     return geolocator.geocode(location)
 
-st.title("☁️ 3-Day Cloud Cover Forecast - When is the sky blue?")
+st.title("☁️ 3-Day Cloud Cover Forecast")
 
 # Location input
 location = st.text_input("Enter a location:", "London, UK")
@@ -49,6 +43,11 @@ if location:
                 'Cloud Cover (%)': weather_data['hourly']['cloudcover'],
                 'Temperature (°C)': weather_data['hourly']['temperature_2m']
             })
+
+            # Filter data for the next 3 days starting from now
+            now = pd.Timestamp.now(tz=df['Time'].dt.tz)
+            df = df[df['Time'] >= now]
+            df = df[df['Time'] < now + pd.Timedelta(days=3)]
 
             # Add columns for date and hour
             df['Date'] = df['Time'].dt.date
@@ -68,7 +67,6 @@ if location:
                                           ticktext=["0% (Clear)", "50%", "100% (Cloudy)"]
                                       ))
             st.plotly_chart(fig_heatmap, use_container_width=True)
-
 
             # Create line chart
             fig_line = px.line(df, x='Time', y='Cloud Cover (%)', 
