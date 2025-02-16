@@ -7,7 +7,7 @@ from datetime import timedelta
 
 st.set_page_config(page_title="Cloud Cover Forecast", page_icon="☁️", layout="wide")
 
-# @st.cache_data(ttl=timedelta(hours=1))
+@st.cache_data(ttl=timedelta(hours=1))
 def get_weather(latitude, longitude):
     base_url = "https://api.open-meteo.com/v1/forecast"
     params = {
@@ -20,7 +20,7 @@ def get_weather(latitude, longitude):
     response = requests.get(base_url, params=params)
     return response.json() if response.status_code == 200 else None
 
-# @st.cache_data(ttl=timedelta(hours=24))
+@st.cache_data(ttl=timedelta(hours=24))
 def geocode(location):
     geolocator = Nominatim(user_agent="cloud_cover_forecast_app")
     return geolocator.geocode(location)
