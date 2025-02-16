@@ -79,7 +79,7 @@ if location:
             fig_heatmap = px.imshow(pivoted_data,
                                     labels=dict(x="Hour of Day", y="Date", color="Cloud Cover (%)"),
                                     color_continuous_scale=["#007FFF", "#FFFFFF"],  # Blue to White
-                                    title="Cloud Cover Heatmap",y=date_order)
+                                    title="Cloud Cover Heatmap",y=df['Date'].unique())
 
             # Add sunrise and sunset vertical lines
             sun_df['SortableDate'] = sun_df['Date'].dt.date
@@ -112,15 +112,16 @@ if location:
             st.plotly_chart(fig_heatmap, use_container_width=True)
 
 
+            # Create a date column and group by date
             # Ensure df is sorted by Time
             df = df.sort_values('Time')
 
-            # Create a formatted date column for daily ticks
-            df['FormattedDate'] = df['Time'].dt.strftime('%a %d %b')
+            # Create formatted date and hour columns
+            df['FormattedDateTime'] = df['Time'].dt.strftime('%a %d %b %H:%M')
 
             # Create line chart
             fig_line = px.line(df, x='Time', y='Cloud Cover (%)', 
-                            title="Cloud Cover Forecast",
+                            title="Hourly Cloud Cover Forecast",
                             labels={"Cloud Cover (%)": "Cloud Cover (%)", "Time": "Date and Time"})
             fig_line.update_traces(line=dict(color="royalblue"))
 
@@ -148,14 +149,19 @@ if location:
                 height=400,
                 xaxis=dict(
                     type='date',
-                    tickmode='array',
-                    tickvals=df.groupby('FormattedDate')['Time'].first(),
-                    ticktext=df['FormattedDate'].unique(),
+                    tickformat='%a %d %b',
+                    dtick='D1',  # Show one tick per day
                     tickangle=45,
                 ),
                 yaxis=dict(
                     range=[0, 100]  # Set y-axis range to ensure sunrise/sunset markers are visible
-                )
+                ),
+                hovermode="x unified"
+            )
+
+            # Update hover template to show hour
+            fig_line.update_traces(
+                hovertemplate="<b>%{x|%a %d %b %H:%M}</b><br>Cloud Cover: %{y:.1f}%<extra></extra>"
             )
 
             st.plotly_chart(fig_line, use_container_width=True)
