@@ -5,6 +5,7 @@ import plotly.express as px
 from geopy.geocoders import Nominatim
 from datetime import datetime, timedelta
 
+#  setting navigation
 st.set_page_config(
     page_title="10-Day Weather Forecast",
     page_icon="☁️",
