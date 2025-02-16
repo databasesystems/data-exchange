@@ -24,7 +24,7 @@ def geocode(location):
     geolocator = Nominatim(user_agent="cloud_cover_forecast_app")
     return geolocator.geocode(location)
 
-st.title("☁️ 3-Day Cloud Cover Forecast")
+st.title("☁️ 3-Day Cloud Cover Forecast - When is the sky blue?")
 
 # Location input
 location = st.text_input("Enter a location:", "London, UK")
