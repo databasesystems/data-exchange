@@ -5,7 +5,13 @@ import plotly.express as px
 from geopy.geocoders import Nominatim
 from datetime import datetime, timedelta
 
-st.set_page_config(page_title="Cloud Cover Forecast", page_icon="☁️", layout="wide")
+st.set_page_config(
+    page_title="10-Day Weather Forecast",
+    page_icon="☁️",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
+
 
 @st.cache_data(ttl=timedelta(hours=1))
 def get_weather(latitude, longitude):
