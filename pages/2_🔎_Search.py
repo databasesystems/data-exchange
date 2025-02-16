@@ -8,7 +8,7 @@ import importlib
 
 st.set_page_config(
     page_title="10-Day Weather Forecast",
-    page_icon="💧",
+    page_icon="🔎",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
