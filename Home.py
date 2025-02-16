@@ -90,7 +90,7 @@ color_map = {
 
 # Define line styles (make London thicker)
 line_styles = {
-    "London UK": {"width": 3},  # Thicker line for London
+    "London UK": {"width": 2},  # Thicker line for London
     "Xanthi Greece": {"width": 1},
     "Cesme Turkey": {"width": 1},
     "Cairo Egypt": {"width": 1}
