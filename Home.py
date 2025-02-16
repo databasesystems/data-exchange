@@ -81,9 +81,16 @@ combined_df['Day'] = combined_df['Time'].dt.strftime('%a %d %b')
 # Create and display graphs
 st.header("10-Day Weather Forecast Comparison")
 
+# Define a color map with London as orange
+color_map = {
+    "London UK": "orange",
+    "Cairo Egypt": "blue",
+    "Xanthi Greece": "green",
+    "Cesme Turkey": "red"}
+
 for metric in ['Temperature (°C)', 'Humidity (%)', 'Cloud Cover (%)']:
     fig = px.line(combined_df, x='Time', y=metric, color='Location',
-                  title=f'{metric} Forecast Comparison')
+                  title=f'{metric} Forecast Comparison', color_discrete_map=color_map)
     fig.update_layout(height=500, legend_title_text='Location')
     fig.update_xaxes(
         title_text='Date',
