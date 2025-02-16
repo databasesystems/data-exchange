@@ -28,7 +28,7 @@ This app is hosted on [Streamlit Cloud](https://streamlit.io/cloud), demonstrati
 This app was developed by [Database Systems](https://databasesystems.info/), a platform dedicated to exploring and sharing knowledge about database systems and related technologies.
 
 ## Disclaimer
-This is a demo application and should not be used for critical decision-making. Weather predictions are based on the Open-Meteo API and may not always be 100% accurate.
+This is a demo application and should not be used for critical decision-making. Weather predictions are based on the Open-Meteo API.
 
 ## Links
 - [Streamlit Documentation](https://docs.streamlit.io/)
