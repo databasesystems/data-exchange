@@ -63,8 +63,5 @@ if map_data['last_clicked']:
         # Temperature chart using Streamlit's line_chart
         st.line_chart(df.set_index('Time')['Temperature (°C)'])
 
-        # Display additional information
-        st.write("Hourly temperature data for the next 10 days:")
-        st.dataframe(df)
     else:
         st.error("Unable to fetch forecast data. Please try again.")
