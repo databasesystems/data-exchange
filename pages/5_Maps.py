@@ -36,6 +36,16 @@ map_data = st_folium(st.session_state.map, width=200, height=200, key="folium_ma
 if map_data.get('last_clicked') is not None:
     clicked_lat = map_data['last_clicked']['lat']
     clicked_lon = map_data['last_clicked']['lng']
+
+    # Display clicked location and forecast for out of range coordinates
+    # Funny thing is I am getting out of range coordinates when I 
+    # click on the map. This If statement is to handle that case
+    if clicked_lat is not None and clicked_lon is not None:
+        # Normalize latitude
+        clicked_lat = ((clicked_lat + 90) % 180) - 90
+        
+        # Normalize longitude
+        clicked_lon = ((clicked_lon + 180) % 360) - 180
     
     # Append the clicked location to the DataFrame
     new_row = pd.DataFrame({'Latitude': [clicked_lat], 'Longitude': [clicked_lon]})
