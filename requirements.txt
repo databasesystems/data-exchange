@@ -1,5 +1,6 @@
-plotly
-geopy
-folium
-streamlit_folium
 streamlit_extras
+openmeteo-requests
+requests-cache 
+retry-requests 
+numpy 
+pandas
