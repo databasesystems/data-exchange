@@ -30,7 +30,7 @@ def create_centered_map(df):
 
 # Create and render the map
 st.session_state.map = create_centered_map(st.session_state.coords_df)
-map_data = st_folium(st.session_state.map, width=200, height=200, key="folium_map")
+map_data = st_folium(st.session_state.map, width=600, height=300, key="folium_map")
 
 # Check if the map was clicked
 if map_data.get('last_clicked') is not None:
