@@ -1,91 +1,54 @@
 import streamlit as st
-import folium
 from streamlit_folium import st_folium
-from folium.plugins import MousePosition
-import requests
+import folium
 import pandas as pd
 
-# Initialize session state for markers if it doesn't exist
-if 'markers' not in st.session_state:
-    st.session_state.markers = []
+st.title("Interactive Map with Click Markers and Dynamic Centering")
 
-# Function to get weather forecast using the FREE open-meteo API
-def get_forecast(latitude, longitude):
-    url = f"https://api.open-meteo.com/v1/forecast?latitude={latitude}&longitude={longitude}&hourly=temperature_2m&timezone=auto&forecast_days=10"
-    response = requests.get(url)
-    return response.json()
+# Initialize or retrieve the coordinates DataFrame from the session state
+if 'coords_df' not in st.session_state:
+    st.session_state.coords_df = pd.DataFrame(columns=["Latitude", "Longitude"])
 
-# Set up the page width and title etc...
-st.set_page_config(page_title="Interactive Map", layout="wide")
-st.title("Click map to get 10-day temperature forecast")
-
-# Initialize the streamlit folium map centered on a default location (e.g., London, UK)
-m = folium.Map(location=[51.5074, -0.1278], zoom_start=12)
-
-# Add mouse position display on the top corner of the map
-formatter = "function(num) {return L.Util.formatNum(num, 5);};"
-MousePosition(
-    position="topright",
-    separator=" | ",
-    empty_string="NaN",
-    lng_first=True,
-    num_digits=20,
-    prefix="Coordinates:",
-    lat_formatter=formatter,
-    lng_formatter=formatter,
-).add_to(m)
-
-# Add a LayerControl to the map
-folium.LayerControl().add_to(m)
-
-# Add existing markers from session state
-for marker in st.session_state.markers:
-    folium.Marker(marker['location'], popup=marker['popup']).add_to(m)
-
-# Display the map and capture the last click
-map_data = st_folium(m, width=300, height=300)
-
-# Display clicked location and forecast
-if map_data['last_clicked']:
-    lat = map_data['last_clicked']['lat']
-    lon = map_data['last_clicked']['lng']
-
-    # Display clicked location and forecast for out of range coordinates
-    if lat is not None and lon is not None:
-        # Normalize latitude
-        lat = ((lat + 90) % 180) - 90
+# Function to create and center map based on markers
+def create_centered_map(df):
+    # If there are no markers, initialize map with a default view
+    if df.empty:
+        return folium.Map(location=[51.5074, -0.1278], zoom_start=10)
+    else:
+        # Create a map centered on the mean of the latitude and longitude of the markers
+        map_center = [df["Latitude"].mean(), df["Longitude"].mean()]
+        map = folium.Map(location=map_center, zoom_start=10)
         
-        # Normalize longitude
-        lon = ((lon + 180) % 360) - 180
-
-        st.write(f"Clicked Location - Latitude: {lat:.5f}, Longitude: {lon:.5f}")
-
-        # Add new marker to session state
-        new_marker = {
-            'location': [lat, lon],
-            'popup': f"Lat: {lat:.5f}, Lon: {lon:.5f}"
-        }
-        st.session_state.markers.append(new_marker)
-
-        # Get and display forecast
-        forecast_data = get_forecast(lat, lon)
+        # Add markers for all coordinates in the DataFrame
+        for _, row in df.iterrows():
+            folium.Marker(location=[row["Latitude"], row["Longitude"]]).add_to(map)
         
-        if forecast_data and 'hourly' in forecast_data:
-            hourly = forecast_data['hourly']
-            df = pd.DataFrame({
-                'Time': pd.to_datetime(hourly['time']),
-                'Temperature (°C)': hourly['temperature_2m']
-            })
+        # Automatically adjust the map to fit the markers
+        map.fit_bounds(map.get_bounds())
+        
+        return map
 
-            st.subheader(f"10-Day Temperature Forecast for ({lat:.5f}, {lon:.5f})")
+# Create and render the map
+st.session_state.map = create_centered_map(st.session_state.coords_df)
+map_data = st_folium(st.session_state.map, width=200, height=200, key="folium_map")
 
-            # Temperature chart using Streamlit's line_chart
-            st.line_chart(df.set_index('Time')['Temperature (°C)'])
+# Check if the map was clicked
+if map_data.get('last_clicked') is not None:
+    clicked_lat = map_data['last_clicked']['lat']
+    clicked_lon = map_data['last_clicked']['lng']
+    
+    # Append the clicked location to the DataFrame
+    new_row = pd.DataFrame({'Latitude': [clicked_lat], 'Longitude': [clicked_lon]})
+    st.session_state.coords_df = pd.concat([st.session_state.coords_df, new_row], ignore_index=True)
+    
+    # Rerun the app to refresh the map with the new marker and adjusted view
+    st.rerun()
 
-        else:
-            st.error("Unable to fetch forecast data. Please try again.")
+# Display the DataFrame with all clicked coordinates
+st.dataframe(st.session_state.coords_df)
 
-# Add a button to clear all markers
-if st.button('Clear All Markers'):
-    st.session_state.markers = []
-    st.experimental_rerun()
+# Optional: Add a button to clear all markers and the DataFrame
+if st.button("Clear All Markers and Log"):
+    st.session_state.coords_df = pd.DataFrame(columns=["Latitude", "Longitude"])
+    # Rerun the app to refresh the state and map
+    st.rerun()
