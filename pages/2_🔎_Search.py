@@ -7,7 +7,7 @@ from datetime import timedelta
 import importlib
 
 st.set_page_config(
-    page_title="10-Day Weather Forecast",
+    page_title="🔎 Search by location",
     page_icon="🔎",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -33,7 +33,7 @@ def geocode(location):
     return geolocator.geocode(location)
 
 # Main content
-st.title("🌦️ 10-Day Weather Forecast")
+st.title("🔎 Search by location")
 
 # Location input
 location = st.text_input("Enter a location:", "London, UK")

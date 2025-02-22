@@ -8,7 +8,7 @@ from datetime import timedelta
 # Page configuration
 st.set_page_config(
     page_title="Weather Comparison",
-    page_icon="🌤️",
+    page_icon="🏠",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
@@ -33,7 +33,7 @@ def geocode(location):
     return geolocator.geocode(location)
 
 # Main content
-st.title("🌍 Weather Comparison for Selected Locations")
+st.title("🏠 Home")
 
 # Location selection
 locations = ["Cesme Turkey", "Xanthi Greece", "London UK", "Cairo Egypt"]
@@ -79,7 +79,7 @@ combined_df = pd.concat(all_data, ignore_index=True)
 combined_df['Day'] = combined_df['Time'].dt.strftime('%a %d %b')
 
 # Create and display graphs
-st.header("10-Day Weather Forecast Comparison")
+st.subheader("10-Day Weather Forecast Comparison")
 
 # Define a color map with London as orange
 color_map = {

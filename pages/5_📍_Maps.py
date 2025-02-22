@@ -4,8 +4,14 @@ import folium
 import pandas as pd
 import requests
 
-st.title("Interactive Map with Weather Forecast")
+st.set_page_config(
+    page_title="Interactive Weather Map",
+    page_icon="📍",
+    layout="wide"
+)
 
+st.subheader("WIP - Interactive Map with Weather Forecast")
+st.write("This page is under construction. Please check back later for updates.")
 # Function to fetch 10-day hourly forecast from Open-Meteo
 def fetch_weather_forecast(latitude, longitude):
     url = "https://api.open-meteo.com/v1/forecast"
