@@ -6,7 +6,7 @@ from geopy.geocoders import Nominatim
 from datetime import timedelta, datetime
 
 st.set_page_config(
-    page_title="⚡ Power View",
+    page_title="⚡ Powerful weather graph using streamlit",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -30,7 +30,7 @@ def geocode(location):
     return geolocator.geocode(location)
 
 # Main content
-st.title("⚡ Power View")
+st.title("⚡ Power graph")
 
 # Location input
 location = st.text_input("Enter a location:", "London, UK")
@@ -64,7 +64,7 @@ df = pd.DataFrame({
 })
 
 # Add a slider to select the number of days
-num_days = st.slider("Number of days to forecast", min_value=1, max_value=10, value=5)
+num_days = st.slider("Number of days to forecast", min_value=1, max_value=10, value=3, step=1)
 
 # Filter the dataframe based on the selected number of days
 start_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -141,4 +141,4 @@ for _, row in daily_data.iterrows():
 
 # Additional Information
 st.info(f"Data is updated hourly. Last update: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}")
-st.write("Data source: Open-Meteo API")
+st.write("Data source: <a href='https://open-meteo.com/en/docs' target='_blank'>Open-Meteo API</a>", unsafe_allow_html=True, help="Open-Meteo API")

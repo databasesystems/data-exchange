@@ -5,7 +5,11 @@ import plotly.express as px
 from geopy.geocoders import Nominatim
 from datetime import timedelta
 
-st.set_page_config(page_title="Cloud Cover Forecast", page_icon="☁️", layout="wide")
+st.set_page_config(page_title="Cloud Cover Forecast", 
+                   page_icon="☁️", 
+                   layout="wide",
+                   initial_sidebar_state="collapsed"
+)
 
 # @st.cache_data(ttl=timedelta(hours=1))
 def get_weather(latitude, longitude):
@@ -187,3 +191,5 @@ if location:
         st.error("Location not found. Please enter a valid location.")
 else:
     st.warning("Please enter a location to get the cloud cover forecast.")
+
+st.write("Data source: <a href='https://open-meteo.com/en/docs' target='_blank'>Open-Meteo API</a>", unsafe_allow_html=True, help="Open-Meteo API")

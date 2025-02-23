@@ -137,4 +137,4 @@ for i, location in enumerate(selected_locations):
 
 # Additional Information
 st.info(f"Data is updated hourly. Last update: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}")
-st.write("Data source: Open-Meteo API")
+st.write("Data source: <a href='https://open-meteo.com/en/docs' target='_blank'>Open-Meteo API</a>", unsafe_allow_html=True, help="Open-Meteo API")
