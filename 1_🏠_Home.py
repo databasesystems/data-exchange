@@ -30,7 +30,7 @@ def geocode(location):
     return geolocator.geocode(location)
 
 # Main content
-st.title("⚡ Power graph")
+st.title("⚡ Power graph advanced weather!")
 
 # Location input
 location = st.text_input("Enter a location:", "London, UK")
