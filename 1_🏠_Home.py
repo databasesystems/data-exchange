@@ -31,6 +31,24 @@ def geocode(location):
     geolocator = Nominatim(user_agent="weather_forecast_app")
     return geolocator.geocode(location)
 
+# def geocode(location):
+#     try:
+#         url = "https://photon.komoot.io/api/"
+#         params = {"q": location, "limit": 1}
+#         response = requests.get(url, params=params, timeout=5)
+#         response.raise_for_status()
+#         data = response.json()
+#         if data["features"]:
+#             feature = data["features"][0]
+#             coords = feature["geometry"]["coordinates"]
+#             lat = coords[1]
+#             lon = coords[0]
+#             address = feature["properties"].get("name", location)
+#             return {"lat": lat, "lon": lon, "address": address}
+#     except Exception as e:
+#         print(f"Geocoding error: {e}")
+#     return None
+
 
 def generate_weather_summary(df_filtered, num_days, location_name):
     sentences = []
