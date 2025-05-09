@@ -5,3 +5,6 @@ retry-requests
 numpy 
 pandas
 geopy
+requests
+plotly  
+sumy

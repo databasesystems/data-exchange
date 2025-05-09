@@ -1,15 +1,30 @@
 import streamlit as st
 import requests
+import calendar
 import pandas as pd
 import plotly.graph_objects as go
 from geopy.geocoders import Nominatim
 from datetime import timedelta, datetime
 
+# NLTK + Sumy for summarization
+import nltk
+from sumy.parsers.plaintext import PlaintextParser
+from sumy.nlp.tokenizers import Tokenizer
+from sumy.summarizers.lex_rank import LexRankSummarizer
+
+# Download 'punkt' tokenizer if missing
+try:
+    nltk.data.find("tokenizers/punkt")
+except LookupError:
+    nltk.download("punkt")
+nltk.download("punkt")
+nltk.download("punkt_tab")  # some environments need this explicitly
+
+# Streamlit Page Setup
 st.set_page_config(
-    page_title="⚡ Powerful weather graph using streamlit",
+    page_title="⚡ Weather Forecast with Narration",
     page_icon="⚡",
-    layout="wide",
-    initial_sidebar_state="collapsed"
+    layout="wide"
 )
 
 @st.cache_data(ttl=timedelta(hours=1))
@@ -24,121 +39,143 @@ def get_weather(latitude, longitude):
     response = requests.get(base_url, params=params)
     return response.json() if response.status_code == 200 else f"Error: {response.status_code}"
 
-@st.cache_data(ttl=timedelta(hours=24))
+# No caching here, Nominatim may return unhashable objects
 def geocode(location):
     geolocator = Nominatim(user_agent="weather_forecast_app")
     return geolocator.geocode(location)
 
-# Main content
-st.title("⚡ Power graph advanced weather!")
+import calendar
+from datetime import datetime, timedelta
 
-# Location input
-location = st.text_input("Enter a location:", "London, UK")
+def generate_weather_summary(df_filtered, num_days, location_name):
+    lines = []
+    
+    lines.append(f"Weather forecast for {location_name} for the next {num_days} days:")
 
-if not location:
-    st.warning("Please enter a location to get the weather forecast.")
-    st.stop()
+    temp_summary = df_filtered.groupby(df_filtered['Time'].dt.date)['Temperature (°C)'].agg(['min', 'max'])
+    min_temp = temp_summary['min'].min()
+    max_temp = temp_summary['max'].max()
+    lines.append(f"Temperatures will range between {min_temp:.1f}°C and {max_temp:.1f}°C.")
 
-location_info = geocode(location)
-if not location_info:
-    st.error(f"Location not found: {location}")
-    st.stop()
+    rain_days = df_filtered[df_filtered['Rain (mm)'] > 0.1]
+    if not rain_days.empty:
+        for day, group in rain_days.groupby(rain_days['Time'].dt.date):
+            days_from_now = (day - datetime.now().date()).days
+            rain_start = group['Time'].min().strftime('%H:%M')
+            rain_end = group['Time'].max().strftime('%H:%M')
+            total_rain = group['Rain (mm)'].sum()
+            
+            day_name = calendar.day_name[day.weekday()]
+            if days_from_now == 0:
+                day_str = "today"
+            elif days_from_now == 1:
+                day_str = "tomorrow"
+            else:
+                day_str = f"{days_from_now} days from now on {day_name}"
+            
+            lines.append(f"Rain is expected {day_str} between {rain_start} and {rain_end}, with approximately {total_rain:.1f} mm (that is liters per square meter).")
+    else:
+        lines.append("No significant rain is expected during the forecast period.")
 
-lat, lon = location_info.latitude, location_info.longitude
-st.success(f"Showing forecast for {location_info.address}")
+    windy = df_filtered[df_filtered['Wind Speed (km/h)'] > 20]
+    if not windy.empty:
+        max_wind = windy['Wind Speed (km/h)'].max()
+        wind_day = windy['Time'].dt.date.min()
+        days_to_wind = (wind_day - datetime.now().date()).days
+        wind_day_name = calendar.day_name[wind_day.weekday()]
+        
+        if days_to_wind == 0:
+            wind_day_str = "today"
+        elif days_to_wind == 1:
+            wind_day_str = "tomorrow"
+        else:
+            wind_day_str = f"{days_to_wind} days from now on {wind_day_name}"
+        
+        lines.append(f"Winds may reach up to {max_wind:.1f} km/h {wind_day_str}.")
 
-weather_data = get_weather(lat, lon)
+    return " ".join(lines)
 
-if not isinstance(weather_data, dict):
-    st.error(f"Error fetching weather data: {weather_data}")
-    st.stop()
+def summarize_text(text, num_sentences=5):
+    parser = PlaintextParser.from_string(text, Tokenizer("english"))
+    summarizer = LexRankSummarizer()
+    summary = summarizer(parser.document, num_sentences)
+    return " ".join(str(sentence) for sentence in summary)
 
-hourly_data = weather_data['hourly']
-df = pd.DataFrame({
-    'Time': pd.to_datetime(hourly_data['time']),
-    'Temperature (°C)': hourly_data['temperature_2m'],
-    'Humidity (%)': hourly_data['relativehumidity_2m'],
-    'Wind Speed (km/h)': hourly_data['windspeed_10m'],
-    'Cloud Cover (%)': hourly_data['cloudcover'],
-    'Rain (mm)': hourly_data['rain']
-})
+# UI starts
+st.title("⚡ Weather Forecast with Narration")
 
-# Add a slider to select the number of days
-num_days = st.slider("Number of days to forecast", min_value=1, max_value=10, value=3, step=1)
+location = st.text_input("Enter a location", "London, UK")
+if location:
+    location_info = geocode(location)
+    if not location_info:
+        st.error("Location not found.")
+        st.stop()
 
-# Filter the dataframe based on the selected number of days
-start_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-end_date = start_date + timedelta(days=num_days)
-df_filtered = df[(df['Time'] >= start_date) & (df['Time'] < end_date)]
+    lat, lon = location_info.latitude, location_info.longitude
+    weather_data = get_weather(lat, lon)
 
-# Create the combined plot
-fig = go.Figure()
+    if not isinstance(weather_data, dict):
+        st.error(f"Error fetching weather data: {weather_data}")
+        st.stop()
 
-# Temperature
-fig.add_trace(go.Scatter(x=df_filtered['Time'], y=df_filtered['Temperature (°C)'], name="Temperature", line=dict(color="red")))
+    st.success(f"Forecast for: {location_info.address}")
 
-# Humidity
-fig.add_trace(go.Scatter(x=df_filtered['Time'], y=df_filtered['Humidity (%)'], name="Humidity", line=dict(color="blue")))
+    df = pd.DataFrame({
+            'Time': pd.to_datetime(weather_data['hourly']['time']),
+            'Temperature (°C)': weather_data['hourly']['temperature_2m'],
+            'Humidity (%)': weather_data['hourly']['relativehumidity_2m'],
+            'Wind Speed (km/h)': weather_data['hourly']['windspeed_10m'],
+            'Cloud Cover (%)': weather_data['hourly']['cloudcover'],
+            'Rain (mm)': weather_data['hourly']['rain']
+        })
 
-# Wind Speed
-fig.add_trace(go.Scatter(x=df_filtered['Time'], y=df_filtered['Wind Speed (km/h)'], name="Wind Speed", line=dict(color="green")))
+    num_days = st.slider("Days to forecast", 1, 10, 5, key="forecast_days_slider")
+    start_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    end_date = start_date + timedelta(days=num_days)
+    df_filtered = df[(df['Time'] >= start_date) & (df['Time'] < end_date)]
 
-# Cloud Cover
-fig.add_trace(go.Scatter(x=df_filtered['Time'], y=df_filtered['Cloud Cover (%)'], name="Cloud Cover", line=dict(color="gray")))
+    summary_text = generate_weather_summary(df_filtered, num_days, location_info.address)
+    readable_summary = summarize_text(summary_text)
 
-# Rain
-fig.add_trace(go.Bar(x=df_filtered['Time'], y=df_filtered['Rain (mm)'], name="Rain", marker_color="lightblue", yaxis="y2"))
+    st.subheader("📋 Weather Narrative")
+    st.markdown(f"> {readable_summary}")
 
-# Update layout
-fig.update_layout(
-    height=600,
-    title_text=f"{num_days}-Day Weather Forecast",
-    showlegend=True,
-    yaxis=dict(
-        title="Temperature (°C) / Humidity (%) / Wind Speed (km/h) / Cloud Cover (%)",
-        side="left"
-    ),
-    yaxis2=dict(
-        title="Rain (mm)",
-        overlaying="y",
-        side="right"
-    ),
-    xaxis=dict(title="Date")
-)
 
-# Add vertical lines for each day
-for day in df_filtered['Time'][::24]:
-    fig.add_vline(x=day, line_width=1, line_dash="dash", line_color="lightgray")
+    df = pd.DataFrame({
+        'Time': pd.to_datetime(weather_data['hourly']['time']),
+        'Temperature (°C)': weather_data['hourly']['temperature_2m'],
+        'Humidity (%)': weather_data['hourly']['relativehumidity_2m'],
+        'Wind Speed (km/h)': weather_data['hourly']['windspeed_10m'],
+        'Cloud Cover (%)': weather_data['hourly']['cloudcover'],
+        'Rain (mm)': weather_data['hourly']['rain']
+    })
 
-st.plotly_chart(fig, use_container_width=True)
+    # num_days = st.slider("Days to forecast", 1, 10, 5)
+    start_date = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    end_date = start_date + timedelta(days=num_days)
+    df_filtered = df[(df['Time'] >= start_date) & (df['Time'] < end_date)]
 
-# Display daily forecast
-st.header("📅 Daily Forecast")
-daily_data = df_filtered.resample('D', on='Time').agg({
-    'Temperature (°C)': ['mean', 'min', 'max'],
-    'Humidity (%)': 'mean',
-    'Wind Speed (km/h)': 'mean',
-    'Cloud Cover (%)': 'mean',
-    'Rain (mm)': 'sum'
-}).reset_index()
+    summary_text = generate_weather_summary(df_filtered, num_days, location_info.address)
+    readable_summary = summarize_text(summary_text)
 
-daily_data.columns = ['Date', 'Temp_Mean', 'Temp_Min', 'Temp_Max', 'Humidity', 'Wind_Speed', 'Cloud_Cover', 'Rain']
+    # st.subheader("📋 Weather Narrative")
+    # st.markdown(f"> {readable_summary}")
 
-for _, row in daily_data.iterrows():
-    date = row['Date'].strftime("%A, %B %d")
-    col1, col2, col3, col4, col5 = st.columns(5)
-    with col1:
-        st.metric(f"{date}", f"{row['Temp_Mean']:.1f}°C", f"{row['Temp_Min']:.1f}°C to {row['Temp_Max']:.1f}°C")
-    with col2:
-        st.metric("Humidity", f"{row['Humidity']:.1f}%")
-    with col3:
-        st.metric("Wind Speed", f"{row['Wind_Speed']:.1f} km/h")
-    with col4:
-        st.metric("Cloud Cover", f"{row['Cloud_Cover']:.1f}%")
-    with col5:
-        st.metric("Rain", f"{row['Rain']:.1f} mm")
-    st.divider()
+    # Plotting
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=df_filtered['Time'], y=df_filtered['Temperature (°C)'], name="Temperature", line=dict(color="red")))
+    fig.add_trace(go.Scatter(x=df_filtered['Time'], y=df_filtered['Humidity (%)'], name="Humidity", visible="legendonly"))
+    fig.add_trace(go.Scatter(x=df_filtered['Time'], y=df_filtered['Wind Speed (km/h)'], name="Wind Speed", visible="legendonly"))
+    fig.add_trace(go.Scatter(x=df_filtered['Time'], y=df_filtered['Cloud Cover (%)'], name="Cloud Cover", visible="legendonly"))
+    fig.add_trace(go.Bar(x=df_filtered['Time'], y=df_filtered['Rain (mm)'], name="Rain", marker_color="lightblue", yaxis="y2"))
 
-# Additional Information
-st.info(f"Data is updated hourly. Last update: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}")
-st.write("Data source: <a href='https://open-meteo.com/en/docs' target='_blank'>Open-Meteo API</a>", unsafe_allow_html=True, help="Open-Meteo API")
+    fig.update_layout(
+        title=f"{num_days}-Day Weather Forecast",
+        yaxis=dict(title="°C / % / km/h"),
+        yaxis2=dict(title="Rain (mm)", overlaying="y", side="right"),
+        xaxis_title="Time",
+        height=600
+    )
+    st.plotly_chart(fig, use_container_width=True)
+else:
+    st.info("Please enter a location to see the weather forecast.")
