@@ -6,5 +6,4 @@ numpy
 pandas
 geopy
 requests
-plotly  
-sumy
+plotly 
