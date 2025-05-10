@@ -157,7 +157,7 @@ if location:
     summary_text = generate_weather_summary(df_filtered, num_days, location_info.address)
 
 
-    st.subheader("📋 Weather summary for the next {num_days} days ")
+    st.subheader(f"📋 Summary for next {num_days} {'day' if num_days == 1 else 'days'}")
 
     # Assuming you have df_filtered, num_days, and location_name
     summaries = generate_weather_summary(df_filtered, num_days, location_info.address)
