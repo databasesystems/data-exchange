@@ -232,7 +232,7 @@ if location:
     # Plotting
     fig = go.Figure()
     # Display the figure without the modebar
-    fig.add_trace(go.Scatter(x=df_filtered['Time'], y=df_filtered['Temperature (°C)'], name="Temperature", line=dict(color="yellow")))
+    fig.add_trace(go.Scatter(x=df_filtered['Time'], y=df_filtered['Temperature (°C)'], name="Temperature", line=dict(color="#ff3300")))
     fig.add_trace(go.Scatter(x=df_filtered['Time'], y=df_filtered['Humidity (%)'], name="Humidity", visible="legendonly", line=dict(color="#4682B4")))
     fig.add_trace(go.Scatter(x=df_filtered['Time'], y=df_filtered['Wind Speed (km/h)'], name="Wind Speed", visible="legendonly", line=dict(color='#2E8B57') )) # This is the color code for a brown-yellow shade))  fig.add_trace(go.Scatter(x=df_filtered['Time'], y=df_filtered['Cloud Cover (%)'], name="Cloud Cover", visible="legendonly"))
     fig.add_trace(go.Scatter(x=df_filtered['Time'], y=df_filtered['Cloud Cover (%)'], name="Cloud Cover", visible="legendonly", line=dict(color="grey")))
