@@ -7,7 +7,7 @@ from geopy.geocoders import Nominatim
 from datetime import timedelta, datetime, time
 
 
-# Streamlit Page Setup
+# Streamlit Page Setup for quick run
 st.set_page_config(
     page_title="Weather Forecast",
     page_icon="⚡",
